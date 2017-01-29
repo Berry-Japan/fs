@@ -156,19 +156,50 @@ char *get_system_type(byte type)
 
 
 //---------------------------------------------------------
+//	Check /etc/fstab
+//---------------------------------------------------------
+
+int check_fstab(char *device)
+{
+	FILE *fp;
+	int m, n;
+	char line[256], dev[120], mnt[120], fs[20], opt[100];
+
+	fp = fopen("/etc/fstab", "r");
+	if (!fp) {
+		fprintf(stderr, "Can't open %s\n", "/etc/fstab");
+		return 1;
+	}
+
+	while (fgets(line, sizeof(line), fp)) {
+		if (sscanf(line, "%s %s %s %s %d %d", dev, mnt, fs, opt, &m, &n) != 6) continue;
+		if (!strcmp(dev, device)) return 0;
+	}
+	fclose(fp);
+
+	return 1;
+}
+
+
+//---------------------------------------------------------
 //	Displays Partition Table
 //---------------------------------------------------------
 
 void show_partition_table(char *device, partition_table pt, int flag)
 {
 	int x;
+	char buff[256];
 
 	if (flag) {
 		for (x = 0; x < 4; x++) {
 			devc++;
+
+			snprintf(buff, sizeof(buff), "%s%d", device, devc);
+			if (!check_fstab(buff)) continue;
+
 			switch (pt.entry[x].id) {
 			case NTFS:		// 0x07
-				printf("%s%d\t/mnt/hd%d\tntfs\tusers\t0 0\n", device, devc, devc);
+				printf("%s%d\t/mnt/hd%d\tntfs\tusers,ro\t0 0\n", device, devc, devc);
 				break;
 
 			case Win98_FAT32:	// 0x0b
