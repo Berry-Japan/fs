@@ -1,7 +1,7 @@
 //---------------------------------------------------------
 //	Filesystem Detection and Configuration
 //
-//		(C)2003 NAKADA
+//		(C)2003-2004 NAKADA
 //---------------------------------------------------------
 
 #include <stdio.h>
@@ -190,7 +190,8 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 				break;
 
 			case NTFS:			// 0x07
-				printf("%s\tntfs\tusers,iocharset=euc-jp,uid=1000\t0 0\n", buff);
+			case HIDDEN_NTFS:		// 0x17
+				printf("%s\tntfs\tusers,nls=euc-jp,uid=1000\t0 0\n", buff);
 				break;
 
 			case Win98_FAT32:		// 0x0b

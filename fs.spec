@@ -1,5 +1,5 @@
 %define name fs
-%define version 0.11
+%define version 0.12
 %define release b1
 
 Name:		%{name}
@@ -70,6 +70,9 @@ rm -rf $RPM_BUILD_DIR/%{name}-%{version}
 ##
 
 %changelog
+* Wed Oct 20 2004 Yuichiro Nakada <berry@po.yui.mine.nu>
+- Support Hidden NTFS
+- Changed iocharset to nls for NTFS
 * Sun Nov 30 2003 Yuichiro Nakada <berry@po.yui.mine.nu>
 - Support FAT12
 * Wed Nov 19 2003 Yuichiro Nakada <berry@po.yui.mine.nu>

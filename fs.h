@@ -8,6 +8,7 @@
 
 #define EXTENDED		0x05
 #define NTFS			0x07
+#define HIDDEN_NTFS		0x17
 #define Win98_FAT32		0x0b
 #define Win98_FAT32_LBA		0x0c
 #define WIN98_EXTENDED		0x0f
