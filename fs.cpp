@@ -207,24 +207,26 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 
 			// set
 			switch (pt.entry[x].id) {
-			case NTFS:		// 0x07
+			case NTFS:			// 0x07
 				printf("%s\tntfs\tusers,iocharset=euc-jp,uid=1000\t0 0\n", buff);
 				break;
 
-			case Win98_FAT32:	// 0x0b
-			case Win98_FAT32_LBA:	// 0x0c
+			case Win98_FAT32:		// 0x0b
+			case Win98_FAT32_LBA:		// 0x0c
+			case Win98_HIDDEN_FAT32:	// 0x1b
+			case Win98_HIDDEN_FAT32_LBA:	// 0x1c
 				printf("%s\tvfat\tusers,codepage=932,iocharset=euc-jp\t0 0\n", buff);
 				break;
 
-			case LINUX_PARTITION:	// 0x81
+			case LINUX_PARTITION:		// 0x81
 				printf("%s\text2\tusers\t0 0\n", buff);
 				break;
 
-			case LINUX_SWAP:	// 0x82
+			case LINUX_SWAP:		// 0x82
 				printf("%s%d\tswap\tswap\tdefaults\t0 0\n", device, partc);
 				break;
 
-			case LINUX_NATIVE:	// 0x83
+			case LINUX_NATIVE:		// 0x83
 				printf("%s\text3\tusers\t0 0\n", buff);
 				break;
 			}

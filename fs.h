@@ -11,6 +11,8 @@
 #define Win98_FAT32		0x0b
 #define Win98_FAT32_LBA		0x0c
 #define WIN98_EXTENDED		0x0f
+#define Win98_HIDDEN_FAT32	0x1b
+#define Win98_HIDDEN_FAT32_LBA	0x1c
 #define LINUX_PARTITION		0x81
 #define LINUX_SWAP		0x82
 #define LINUX_NATIVE		0x83
