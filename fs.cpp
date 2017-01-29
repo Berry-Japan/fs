@@ -210,14 +210,24 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 			//printf("%x\n",pt.entry[x].id);
 		}
 	} else {
-		printf("\nDevice %s\n", dev);		// Bad Code !!
+		/*printf("\nDevice %s\n", dev);		// Bad Code !!
 		printf("Active\tSystem Type\t\t\t    Start  Size (KB)\n");
 		for (x=0; x<4; x++) {
 			printf("  %-3s", pt.entry[x].boot_flag ? "Yes" : "No");
 			printf("\t%-30s", get_system_type(pt.entry[x].id));
 			printf(" %10ld", pt.entry[x].lba_start);
 			printf(" %10ld\n", pt.entry[x].lba_size / 2);
+		}*/
+		printf("Device\t\t\tActive     Start   Size(KB)  System Type\n");
+		for (x=0; x<4; x++) {
+			printf("%s%d\t", part, ++partc);
+			//printf("%s%d\t", part, x+ex*4+1);
+			printf("  %-3s", pt.entry[x].boot_flag ? "Yes" : "No");
+			printf(" %10ld", pt.entry[x].lba_start);
+			printf(" %10ld", pt.entry[x].lba_size / 2);
+			printf("  %s\n", get_system_type(pt.entry[x].id));
 		}
+		printf("\n");
 	}
 
 	return;
@@ -304,7 +314,7 @@ int main(int argc, char *argv[])
 	// Check using devfs
 	if (stat("/dev/.devfsd", &statbuf)) {
 	//if (1) {
-		// Use /proc/partitions
+		// Use /proc/partitions to find discs
 		fp = fopen(PROC_PARTITIONS, "r");
 		if (!fp) {
 			fprintf(stderr, "Can't open %s\n", PROC_PARTITIONS);
@@ -328,7 +338,7 @@ int main(int argc, char *argv[])
 		}
 		fclose(fp);
 	} else {
-		// Use devfs
+		// Use devfs to find discs
 		if (!glob("/dev/discs/disc?*", 0, NULL, &globres)) {
 			for (devc=0; devc<(int)globres.gl_pathc; devc++) {
 				//printf("%s\n", globres.gl_pathv[i]);
