@@ -1,5 +1,5 @@
 PREFIX = /opt/berry
-CFLAGS = -Wall -lstdc++
+CFLAGS = -Wall -lstdc++ -O2 -Os
 #CFLAGS = -g `gtk-confg --cflags`
 #LDFLAGS = `gtk-config --libs`
 CC = gcc

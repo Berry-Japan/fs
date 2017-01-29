@@ -29,7 +29,7 @@ char part[120];		// partition name
 
 
 //---------------------------------------------------------
-//	Define llseek
+//	Define llseek (for Linux)
 //---------------------------------------------------------
 
 _syscall5(int, _llseek, unsigned int, fd,
@@ -38,7 +38,7 @@ _syscall5(int, _llseek, unsigned int, fd,
 
 
 //---------------------------------------------------------
-//	Seek Sector
+//	Seek Sector (for Linux)
 //---------------------------------------------------------
 
 void seek_sector(int fd, uint sec)
@@ -57,7 +57,7 @@ void seek_sector(int fd, uint sec)
 
 
 //---------------------------------------------------------
-//	Read Sector
+//	Read Sector (for Linux)
 //---------------------------------------------------------
 
 int read_sector(char *device, uint sec, void *buff)
@@ -93,29 +93,7 @@ int read_partition_table(char *device, uint sec, partition_table *pt)
 }
 
 
-//---------------------------------------------------------
-//	Read Partition Table
-//---------------------------------------------------------
-
-/*int read_partition_table(char *drive, partition_table *pt)
-{
-	byte buffer[512];
-	int status;
-	FILE *dr;
-
-	dr = fopen(drive, "rb");
-	if (dr == NULL) {
-		printf("\nError opening drive %s\n", drive);
-		exit(1);
-	}
-	status = fread(buffer, sizeof(byte), 512, dr);
-	memmove(pt, (buffer + 0x1BE), sizeof(partition_table));
-
-	return status;
-}
-
-
-//---------------------------------------------------------
+/*//---------------------------------------------------------
 //	Write Partition Table
 //---------------------------------------------------------
 
@@ -157,7 +135,7 @@ char *get_system_type(byte type)
 
 
 //---------------------------------------------------------
-//	Check /etc/fstab
+//	Check /etc/fstab (for Linux)
 //---------------------------------------------------------
 
 int check_fstab(char *device)
@@ -196,7 +174,7 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 		if (ex) ex = 1;
 		else ex = 4;
 
-		for (x = 0; x < ex; x++) {
+		for (x=0; x<ex; x++) {
 			partc++;
 
 			// check fstab
@@ -223,18 +201,18 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 				break;
 
 			case LINUX_SWAP:		// 0x82
-				printf("%s%d\tswap\tswap\tdefaults\t0 0\n", device, partc);
+				printf("%s%d\tswap\t\tswap\tdefaults\t0 0\n", device, partc);
 				break;
 
 			case LINUX_NATIVE:		// 0x83
 				printf("%s\text3\tusers\t0 0\n", buff);
-				break;
 			}
 			//printf("%x\n",pt.entry[x].id);
 		}
 	} else {
-		printf("\nActive\tSystem Type\t\t\t    Start  Size (KB)\n");
-		for (x = 0; x < 4; x++) {
+		printf("\nDevice %s\n", dev);		// Bad Code !!
+		printf("Active\tSystem Type\t\t\t    Start  Size (KB)\n");
+		for (x=0; x<4; x++) {
 			printf("  %-3s", pt.entry[x].boot_flag ? "Yes" : "No");
 			printf("\t%-30s", get_system_type(pt.entry[x].id));
 			printf(" %10ld", pt.entry[x].lba_start);
@@ -314,13 +292,14 @@ int main(int argc, char *argv[])
 
 	// Check options
 	flag=0;
-	//if (argc>1 && !strcmp(argv[1],"-c")) flag=1;
-	////flag=(argc>1 && !strcmp(argv[1],"-c"));
 	for (i=1; i<argc; i++) {
 		if (!strcmp(argv[i], "-c")) flag|=1;
 		else if(!strcmp(argv[i], "-a")) flag|=2;
+		else if(!strcmp(argv[i], "-v")) flag|=4;
 		//else return syntax(argv[i]);
 	}
+
+	if (flag&4) printf("Scanning for new harddiscs/partitions...\n");
 
 	// Check using devfs
 	if (stat("/dev/.devfsd", &statbuf)) {
