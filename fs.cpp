@@ -201,7 +201,7 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 
 			// check fstab
 			snprintf(buff, sizeof(buff), "%s%d", device, partc);
-			if (!check_fstab(buff)) continue;
+			if (!(flag&2) && !check_fstab(buff)) continue;
 
 			snprintf(buff, sizeof(buff), "%s%d\t/mnt/hd%c%d", device, partc, 'a'+devc, partc);
 
@@ -311,10 +311,16 @@ int main(int argc, char *argv[])
 	struct stat statbuf;
 
 	// Check options
-	//flag=0;
+	flag=0;
 	//if (argc>1 && !strcmp(argv[1],"-c")) flag=1;
-	flag=(argc>1 && !strcmp(argv[1],"-c"));
+	////flag=(argc>1 && !strcmp(argv[1],"-c"));
+	for (i=1; i<argc; i++) {
+		if (!strcmp(argv[i], "-c")) flag|=1;
+		else if(!strcmp(argv[i], "-a")) flag|=2;
+		//else return syntax(argv[i]);
+	}
 
+	// Check using devfs
 	if (stat("/dev/.devfsd", &statbuf)) {
 	//if (1) {
 		// Use /proc/partitions
