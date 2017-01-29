@@ -1,7 +1,7 @@
 //---------------------------------------------------------
 //	Filesystem Detection and Configuration
 //
-//		(C)2003-2004 NAKADA
+//		(C)2003-2004,2006 NAKADA
 //---------------------------------------------------------
 
 #include <stdio.h>
@@ -181,10 +181,16 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 			snprintf(buff, sizeof(buff), "%s%d", device, partc);
 			if (!(flag&2) && !check_fstab(buff)) continue;
 
+			if (flag&16) {
+				// create mount dir
+				snprintf(buff, sizeof(buff), "/mnt/hd%c%d", 'a'+devc, partc);
+				mkdir(buff, 755);
+			}
+
 			if (flag&8) {
-			snprintf(buff, sizeof(buff), "%s%d\t/mnt/%s%d", device, partc, device+5, partc);
+				snprintf(buff, sizeof(buff), "%s%d\t/mnt/%s%d", device, partc, device+5, partc);
 			} else {
-			snprintf(buff, sizeof(buff), "%s%d\t/mnt/hd%c%d", device, partc, 'a'+devc, partc);
+				snprintf(buff, sizeof(buff), "%s%d\t/mnt/hd%c%d", device, partc, 'a'+devc, partc);
 			}
 
 			// set
@@ -311,10 +317,11 @@ int main(int argc, char *argv[])
 	// Check options
 	flag=0;
 	for (i=1; i<argc; i++) {
-		if (!strcmp(argv[i], "-c")) flag|=1;
-		else if(!strcmp(argv[i], "-a")) flag|=2;
-		else if(!strcmp(argv[i], "-v")) flag|=4;
+		if (!strcmp(argv[i], "-c")) flag|=1;		// fstabにないの
+		else if(!strcmp(argv[i], "-a")) flag|=2;	// すべて表示
+		else if(!strcmp(argv[i], "-v")) flag|=4;	// 詳細を表示
 		else if(!strcmp(argv[i], "-f")) flag|=8;
+		else if(!strcmp(argv[i], "-d")) flag|=16;	// ディレクトリ作成
 		//else return syntax(argv[i]);
 	}
 

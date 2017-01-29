@@ -1,12 +1,12 @@
 %define name fs
-%define version 0.14
+%define version 0.15
 %define release b1
 
 Name:		%{name}
 Summary:	Automatic Filesystem Setup
 Version:	%{version}
 Release:	%{release}
-Copyright:	GPL
+License:	GPL
 Group:		System/Tools
 Source:		%{name}-%{version}.tar.bz2
 Buildroot:	%{_tmppath}/%{name}-%{version}
@@ -70,6 +70,8 @@ rm -rf $RPM_BUILD_DIR/%{name}-%{version}
 ##
 
 %changelog
+* Fri Jul 14 2006 Yuichiro Nakada <berry@po.yui.mine.nu>
+- Added -d option for mount dir
 * Wed Nov 17 2004 Yuichiro Nakada <berry@po.yui.mine.nu>
 - Added noatime for ext3, reiserfs
 * Wed Nov 3 2004 Yuichiro Nakada <berry@po.yui.mine.nu>
