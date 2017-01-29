@@ -208,7 +208,7 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 			// set
 			switch (pt.entry[x].id) {
 			case NTFS:		// 0x07
-				printf("%s\tntfs\tusers,ro\t0 0\n", buff);
+				printf("%s\tntfs\tusers,iocharset=euc-jp,umask=222,ro\t0 0\n", buff);
 				break;
 
 			case Win98_FAT32:	// 0x0b
