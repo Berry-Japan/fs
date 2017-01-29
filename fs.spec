@@ -1,5 +1,5 @@
 %define name fs
-%define version 0.17
+%define version 0.18
 %define release b1
 
 Name:		%{name}
@@ -11,7 +11,7 @@ Group:		System/Tools
 Source:		%{name}-%{version}.tar.bz2
 Buildroot:	%{_tmppath}/%{name}-%{version}
 
-BuildArchitectures: i586
+#BuildArchitectures: i586
 
 %description
 Automatic filesystem setup for Berry Linux.
@@ -42,6 +42,9 @@ rm -rf $RPM_BUILD_DIR/%{name}-%{version}
 
 ## change log
 %changelog
+* Tue Nov 11 2008 Yuichiro Nakada <berry@po.yui.mine.nu>
+- Use /sys/block/[hs]d? instead of /proc/partitions
+- Use /sys/block/%s/device/media instead of /proc/ide/%s/media
 * Wed Nov 14 2007 Yuichiro Nakada <berry@po.yui.mine.nu>
 - Use /mnt/sd? default for SATA
 * Fri Apr 20 2007 Yuichiro Nakada <berry@po.yui.mine.nu>

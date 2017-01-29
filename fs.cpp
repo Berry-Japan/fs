@@ -1,7 +1,7 @@
 //---------------------------------------------------------
 //	Filesystem Detection and Configuration
 //
-//		(C)2003-2004,2006-2007 NAKADA
+//		(C)2003-2008 NAKADA
 //---------------------------------------------------------
 
 #include <stdio.h>
@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <linux/unistd.h>
 #include <errno.h>
+#include <dirent.h>	// for DIR
 #include "fs.h"
 
 
@@ -188,15 +189,18 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 			snprintf(buff, sizeof(buff), "%s%d", device, partc);
 			if (!(flag&2) && !check_fstab(buff)) continue;
 
-			if (flag&16) {
-				// create mount dir
-				snprintf(buff, sizeof(buff), "/mnt/hd%c%d", 'a'+devc, partc);
-				mkdir(buff, 755);
-			}
-
 			if (flag&8) {
+				if (flag&16) {
+					// create mount dir
+					snprintf(buff, sizeof(buff), "/mnt/hd%c%d", 'a'+devc, partc);
+					mkdir(buff, 0755);
+				}
 				snprintf(buff, sizeof(buff), "%s%d\t/mnt/hd%c%d", device, partc, 'a'+devc, partc);
 			} else {
+				if (flag&16 && pt.entry[x].id!=5/*extended*/) {
+					snprintf(buff, sizeof(buff), "/mnt/%s%d", device+5, partc);
+					mkdir(buff, 0755/*S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IXOTH|S_IXOTH*/);
+				}
 				snprintf(buff, sizeof(buff), "%s%d\t/mnt/%s%d", device, partc, device+5, partc);
 			}
 
@@ -293,7 +297,8 @@ int is_ide_cdrom_or_tape(char *device)
 
 	/* is it CDROM ? */
 	is_ide=0;
-	snprintf(buff, sizeof(buff), "/proc/ide/%s/media", device);
+	//snprintf(buff, sizeof(buff), "/proc/ide/%s/media", device);
+	snprintf(buff, sizeof(buff), "/sys/block/%s/device/media", device);
 
 	fp = fopen(buff, "r");
 	if (fp != NULL && fgets(buff, sizeof(buff), fp)) {
@@ -314,10 +319,6 @@ int is_ide_cdrom_or_tape(char *device)
 
 int main(int argc, char *argv[])
 {
-	FILE *fp;
-	char line[100], name[100], *s;
-	int ma, mi, sz;
-
 	int i;
 	glob_t globres;
 	struct stat statbuf;
@@ -326,10 +327,10 @@ int main(int argc, char *argv[])
 	flag=0;
 	for (i=1; i<argc; i++) {
 		if (!strcmp(argv[i], "-c")) flag|=1;		// fstabにないの
-		else if(!strcmp(argv[i], "-a")) flag|=2;	// すべて表示
-		else if(!strcmp(argv[i], "-v")) flag|=4;	// 詳細を表示
-		else if(!strcmp(argv[i], "-f")) flag|=8;	// /mnt/hd? 固定に
-		else if(!strcmp(argv[i], "-d")) flag|=16;	// ディレクトリ作成
+		else if (!strcmp(argv[i], "-a")) flag|=2;	// すべて表示
+		else if (!strcmp(argv[i], "-v")) flag|=4;	// 詳細を表示
+		else if (!strcmp(argv[i], "-f")) flag|=8;	// /mnt/hd? 固定に
+		else if (!strcmp(argv[i], "-d")) flag|=16;	// ディレクトリ作成
 		//else return syntax(argv[i]);
 	}
 
@@ -338,6 +339,11 @@ int main(int argc, char *argv[])
 	// Check using devfs
 	if (stat("/dev/.devfsd", &statbuf) || !(flag&8)) {
 	//if (1) {
+#if 0
+		FILE *fp;
+		char line[100], name[100], *s;
+		int ma, mi, sz;
+
 		// Use /proc/partitions to find discs
 		fp = fopen(PROC_PARTITIONS, "r");
 		if (!fp) {
@@ -361,6 +367,41 @@ int main(int argc, char *argv[])
 			devc++;
 		}
 		fclose(fp);
+#endif
+		devc=0;
+		char buff[256];
+		struct dirent *dp;
+		DIR *dir;
+		dir = opendir("/sys/block/");
+		if (dir) {
+			while ((dp = readdir(dir))) {
+				// /sys/block/sda
+				if ((dp->d_name[0]=='h' || dp->d_name[0]=='s') && dp->d_name[1]=='d') {
+					snprintf(dev, sizeof(dev), "/dev/%s", dp->d_name);
+					snprintf(part, sizeof(part), "/dev/%s", dp->d_name);
+					if (!is_ide_cdrom_or_tape(dp->d_name)) {
+						partc=0;
+						partition(0, 0);
+					} else if (flag&1 && check_fstab(dp->d_name)) {
+						// cdrom
+						printf("/dev/%s\t/mnt/cdrom-%s\tauto\tusers,noauto,exec\t0 0\n", dp->d_name, dp->d_name);
+						if (flag&16) {
+							snprintf(buff, sizeof(buff), "/mnt/cdrom-%s", dp->d_name);
+							mkdir(buff, 0755);
+						}
+					}
+					devc++;
+				} else if (flag&1 && dp->d_name[0]=='f' && dp->d_name[1]=='d') {
+					// floppy
+					printf("/dev/%s\t/mnt/floppy-%s\tauto\tusers,noauto,exec,iocharset=utf8\t0 0\n", dp->d_name, dp->d_name);
+					if (flag&16) {
+						snprintf(buff, sizeof(buff), "/mnt/floppy-%s", dp->d_name);
+						mkdir(buff, 0755);
+					}
+				}
+			}
+			closedir(dir);
+		}
 	} else {
 		// Use devfs to find discs
 		if (!glob("/dev/discs/disc?*", 0, NULL, &globres)) {
