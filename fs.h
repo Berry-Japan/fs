@@ -6,12 +6,19 @@
 
 #define PROC_PARTITIONS		"/proc/partitions"
 
+#define FAT12			0x01
+#define FAT16_32M		0x04
 #define EXTENDED		0x05
+#define FAT16			0x06
 #define NTFS			0x07
-#define HIDDEN_NTFS		0x17
 #define Win98_FAT32		0x0b
 #define Win98_FAT32_LBA		0x0c
+#define Win95_FAT16_LBA		0x0e
 #define WIN98_EXTENDED		0x0f
+#define HIDDEN_FAT12		0x11
+#define HIDDEN_FAT16_32M	0x14
+#define HIDDEN_FAT16		0x16
+#define HIDDEN_NTFS		0x17
 #define Win98_HIDDEN_FAT32	0x1b
 #define Win98_HIDDEN_FAT32_LBA	0x1c
 #define LINUX_PARTITION		0x81

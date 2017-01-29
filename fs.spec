@@ -1,5 +1,5 @@
 %define name fs
-%define version 0.12
+%define version 0.13
 %define release b1
 
 Name:		%{name}
@@ -70,6 +70,12 @@ rm -rf $RPM_BUILD_DIR/%{name}-%{version}
 ##
 
 %changelog
+* Wed Nov 3 2004 Yuichiro Nakada <berry@po.yui.mine.nu>
+- Modified for using UTF-8
+- Bug fix for extended partition
+- Support for reiserfs
+- Add -f option
+- Support FAT12/16, Hidden FAT12/16/NTFS etc...
 * Wed Oct 20 2004 Yuichiro Nakada <berry@po.yui.mine.nu>
 - Support Hidden NTFS
 - Changed iocharset to nls for NTFS

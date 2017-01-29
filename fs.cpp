@@ -169,7 +169,7 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 	int x;
 	char buff[256];
 
-	if (flag) {
+	if (flag&1) {
 		// extened ?
 		if (ex) ex = 1;
 		else ex = 4;
@@ -181,24 +181,34 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 			snprintf(buff, sizeof(buff), "%s%d", device, partc);
 			if (!(flag&2) && !check_fstab(buff)) continue;
 
+			if (flag&8) {
+			snprintf(buff, sizeof(buff), "%s%d\t/mnt/%s%d", device, partc, device+5, partc);
+			} else {
 			snprintf(buff, sizeof(buff), "%s%d\t/mnt/hd%c%d", device, partc, 'a'+devc, partc);
+			}
 
 			// set
 			switch (pt.entry[x].id) {
-			case 0x01:			// 0x01 FAT12 for Degital Camera
-				printf("%s\tvfat\tusers,codepage=932,iocharset=euc-jp\t0 0\n", buff);
+			case FAT12:			// 0x01 FAT12 for Degital Camera
+			case FAT16_32M:
+			case FAT16:			// for USB Memory
+			case Win95_FAT16_LBA:
+			case HIDDEN_FAT12:
+			case HIDDEN_FAT16_32M:
+			case HIDDEN_FAT16:
+				printf("%s\tvfat\tusers,codepage=932,utf8=true\t0 0\n", buff);
 				break;
 
 			case NTFS:			// 0x07
 			case HIDDEN_NTFS:		// 0x17
-				printf("%s\tntfs\tusers,nls=euc-jp,uid=1000\t0 0\n", buff);
+				printf("%s\tntfs\tusers,nls=utf8,uid=1000\t0 0\n", buff);
 				break;
 
 			case Win98_FAT32:		// 0x0b
 			case Win98_FAT32_LBA:		// 0x0c
 			case Win98_HIDDEN_FAT32:	// 0x1b
 			case Win98_HIDDEN_FAT32_LBA:	// 0x1c
-				printf("%s\tvfat\tusers,codepage=932,iocharset=euc-jp\t0 0\n", buff);
+				printf("%s\tvfat\tusers,codepage=932,utf8=true\t0 0\n", buff);
 				break;
 
 			case LINUX_PARTITION:		// 0x81
@@ -209,22 +219,15 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 				printf("%s%d\tswap\t\tswap\tdefaults\t0 0\n", device, partc);
 				break;
 
-			case LINUX_NATIVE:		// 0x83
-				printf("%s\text3\tusers\t0 0\n", buff);
+			case LINUX_NATIVE:		// 0x83 (ext3 or reiserfs)
+				printf("%s\tauto\tusers\t0 0\n", buff);
 			}
 			//printf("%x\n",pt.entry[x].id);
 		}
 	} else {
-		/*printf("\nDevice %s\n", dev);		// Bad Code !!
-		printf("Active\tSystem Type\t\t\t    Start  Size (KB)\n");
+		if (partc<4) printf("Device\t\t\tActive     Start   Size(KB)  System Type\n");
 		for (x=0; x<4; x++) {
-			printf("  %-3s", pt.entry[x].boot_flag ? "Yes" : "No");
-			printf("\t%-30s", get_system_type(pt.entry[x].id));
-			printf(" %10ld", pt.entry[x].lba_start);
-			printf(" %10ld\n", pt.entry[x].lba_size / 2);
-		}*/
-		printf("Device\t\t\tActive     Start   Size(KB)  System Type\n");
-		for (x=0; x<4; x++) {
+			if (partc>4 && (pt.entry[x].id==0 || IS_EXTENDED(pt.entry[x].id))) continue;
 			printf("%s%d\t", part, ++partc);
 			//printf("%s%d\t", part, x+ex*4+1);
 			printf("  %-3s", pt.entry[x].boot_flag ? "Yes" : "No");
@@ -311,13 +314,14 @@ int main(int argc, char *argv[])
 		if (!strcmp(argv[i], "-c")) flag|=1;
 		else if(!strcmp(argv[i], "-a")) flag|=2;
 		else if(!strcmp(argv[i], "-v")) flag|=4;
+		else if(!strcmp(argv[i], "-f")) flag|=8;
 		//else return syntax(argv[i]);
 	}
 
 	if (flag&4) printf("Scanning for new harddiscs/partitions...\n");
 
 	// Check using devfs
-	if (stat("/dev/.devfsd", &statbuf)) {
+	if (stat("/dev/.devfsd", &statbuf) || flag&8) {
 	//if (1) {
 		// Use /proc/partitions to find discs
 		fp = fopen(PROC_PARTITIONS, "r");
