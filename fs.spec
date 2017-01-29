@@ -1,5 +1,5 @@
 %define name fs
-%define version 0.10
+%define version 0.11
 %define release b1
 
 Name:		%{name}
@@ -70,6 +70,8 @@ rm -rf $RPM_BUILD_DIR/%{name}-%{version}
 ##
 
 %changelog
+* Sun Nov 30 2003 Yuichiro Nakada <berry@po.yui.mine.nu>
+- Support FAT12
 * Wed Nov 19 2003 Yuichiro Nakada <berry@po.yui.mine.nu>
 - Changed print fomat using no options.
 * Mon Nov 10 2003 Yuichiro Nakada <berry@po.yui.mine.nu>

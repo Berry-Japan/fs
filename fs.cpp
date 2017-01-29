@@ -185,6 +185,10 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 
 			// set
 			switch (pt.entry[x].id) {
+			case 0x01:			// 0x01 FAT12 for Degital Camera
+				printf("%s\tvfat\tusers,codepage=932,iocharset=euc-jp\t0 0\n", buff);
+				break;
+
 			case NTFS:			// 0x07
 				printf("%s\tntfs\tusers,iocharset=euc-jp,uid=1000\t0 0\n", buff);
 				break;
