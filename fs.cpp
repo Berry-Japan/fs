@@ -220,7 +220,7 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 				break;
 
 			case LINUX_NATIVE:		// 0x83 (ext3 or reiserfs)
-				printf("%s\tauto\tusers\t0 0\n", buff);
+				printf("%s\tauto\tusers,noatime\t0 0\n", buff);
 			}
 			//printf("%x\n",pt.entry[x].id);
 		}

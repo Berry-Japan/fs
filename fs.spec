@@ -1,5 +1,5 @@
 %define name fs
-%define version 0.13
+%define version 0.14
 %define release b1
 
 Name:		%{name}
@@ -70,6 +70,8 @@ rm -rf $RPM_BUILD_DIR/%{name}-%{version}
 ##
 
 %changelog
+* Wed Nov 17 2004 Yuichiro Nakada <berry@po.yui.mine.nu>
+- Added noatime for ext3, reiserfs
 * Wed Nov 3 2004 Yuichiro Nakada <berry@po.yui.mine.nu>
 - Modified for using UTF-8
 - Bug fix for extended partition
