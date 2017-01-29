@@ -1,28 +1,30 @@
 //---------------------------------------------------------
-//	Hardware Detection and Configuration
-//		gcc -Wall -lstdc++ fs.cpp -o fs
+//	Filesystem Detection and Configuration
 //
 //		(C)2003 NAKADA
 //---------------------------------------------------------
 
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
-//#include "fs.h"
+#define PROC_PARTITIONS		"/proc/partitions"
 
-#define EXTENDED        0x05
-#define WIN98_EXTENDED  0x0f
-#define LINUX_PARTITION 0x81
-#define LINUX_SWAP      0x82
-#define LINUX_NATIVE    0x83
-#define LINUX_EXTENDED  0x85
-#define LINUX_LVM       0x8e
-#define LINUX_RAID      0xfd
+#define EXTENDED		0x05
+#define NTFS			0x07
+#define Win98_FAT32		0x0b
+#define Win98_FAT32_LBA		0x0c
+#define WIN98_EXTENDED		0x0f
+#define LINUX_PARTITION		0x81
+#define LINUX_SWAP		0x82
+#define LINUX_NATIVE		0x83
+#define LINUX_EXTENDED		0x85
+#define LINUX_LVM		0x8e
+#define LINUX_RAID		0xfd
 
 #define IS_EXTENDED(i) \
 	((i) == EXTENDED || (i) == WIN98_EXTENDED || (i) == LINUX_EXTENDED)
 
+
+//---------------------------------------------------------
+//	Define Structures
+//---------------------------------------------------------
 
 typedef unsigned char byte;
 
@@ -48,7 +50,6 @@ struct systypes {
 	byte type;
 	char *name;
 };
-
 
 struct systypes i386_sys_types[] = {
 	{0x00, "Empty"},
@@ -145,151 +146,3 @@ struct systypes i386_sys_types[] = {
 	{0xff, "BBT"},				/* Xenix Bad Block Table */
 	{ 0, 0 }
 };
-
-
-#define PROC_PARTITIONS		"/proc/partitions"
-char drive_name[100][100];
-
-
-
-int read_partition_table(partition_table *pt, char *drive)
-{
-	byte buffer[512];                       /* Store Master Boot Sector here */
-	int status;
-	FILE *dr;
-
-	dr = fopen(drive, "rb");
-	if (dr == NULL) {
-		printf("\nError opening drive %s\n", drive);
-		exit(1);
-	}
-	status = fread(buffer, sizeof(byte), 512, dr);
-	memmove(pt, (buffer + 0x1BE), sizeof(partition_table));
-
-	return status;
-}
-
-
-int write_partition_table(partition_table partn, char *drive)
-{
-	byte buffer[512];                       /* Store Master Boot Sector here */
-	int status;
-	FILE *dr;
-
-	memmove((buffer + 0x1BE), &partn, sizeof(partition_table));
-
-	dr = fopen(drive, "wb");
-	if (dr == NULL) {
-		printf("\nError opening drive %s for writing\n", drive);
-		exit(1);
-	}
-	status = fwrite(buffer, sizeof(byte), 512, dr);
-
-	return status;
-}
-
-
-
-//---------------------------------------------------------
-//	Get File System Type
-//---------------------------------------------------------
-
-char *get_system_type(byte type)
-{
-	int x;
-//	systypes *types = get_sys_types();
-	systypes *types = i386_sys_types;
-
-	for (x=0; types[x].name; x++)
-		if (types[x].type == type)
-			return types[x].name;
-
-	return "Unkown !!";
-}
-
-
-//---------------------------------------------------------
-//	Displays Partition Table
-//---------------------------------------------------------
-
-void show_partition_table(partition_table pt, int drive)
-{
-	int x;
-
-	printf("\nActive\tSystem Type\t\t\t    Start  Size (KB)\n");
-	for (x = 0; x < 4; x++) {
-		printf("  %-3s", pt.entry[x].boot_flag ? "Yes" : "No");
-		printf("\t%-30s", get_system_type(pt.entry[x].id));
-		printf(" %10ld", pt.entry[x].lba_start);
-		printf(" %10ld\n", pt.entry[x].lba_size / 2);
-	}
-
-	return;
-}
-
-#include <sys/stat.h>
-
-
-//---------------------------------------------------------
-//	Get Partition Name
-//---------------------------------------------------------
-
-int determine_number_of_drives()
-{
-	FILE *fp, *fp2;
-	char line[100], ptname[100], device[120], *s;
-	char buff[100];
-	int ma, mi, sz;
-	int is_ide, n;
-	struct stat statbuf;
-
-	fp = fopen(PROC_PARTITIONS, "r");
-	if (!fp) {
-		fprintf(stderr, "Can't open %s\n", PROC_PARTITIONS);
-		return 0;
-	}
-
-	n=0;
-	while (fgets(line, sizeof(line), fp)) {
-		if (sscanf(line, " %d %d %d %[^\n ]", &ma, &mi, &sz, ptname) != 4) continue;
-		for (s = ptname; *s; s++) ;
-		if (isdigit(s[-1])) continue;
-		snprintf(device, sizeof(device), "/dev/%s", ptname);
-
-		/* is it CDROM ? */
-		snprintf(buff, sizeof(buff), "/proc/ide/%s/media", ptname);
-		printf("%s\n", buff);
-		fp2 = fopen(buff, "r");
-		if (fp2 != NULL && fgets(buff, sizeof(buff), fp2)) {
-			is_ide=(!strncmp(buff, "cdrom", 5) || !strncmp(buff, "tape", 4));
-		} else {
-			/* Now when this proc file does not exist, skip the device when it is read-only. */
-			if (stat(device, &statbuf) == 0) is_ide = ((statbuf.st_mode & 0222) == 0);
-		}
-		if (fp2) fclose(fp2);
-		if (!is_ide) strcpy(drive_name[n++], device);
-	}
-	fclose(fp);
-
-	return n;
-}
-
-
-//---------------------------------------------------------
-//	main
-//---------------------------------------------------------
-
-int main(int argc, char *argv[])
-{
-	int x,drive_count;
-	partition_table pt;
-
-	drive_count = determine_number_of_drives();
-
-	for (x = 0; x < drive_count; x++) {
-		read_partition_table(&pt, drive_name[x]);
-		show_partition_table(pt, x);
-	}
-
-	return 0;
-}
