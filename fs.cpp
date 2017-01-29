@@ -195,9 +195,9 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 			}
 
 			if (flag&8) {
-				snprintf(buff, sizeof(buff), "%s%d\t/mnt/%s%d", device, partc, device+5, partc);
-			} else {
 				snprintf(buff, sizeof(buff), "%s%d\t/mnt/hd%c%d", device, partc, 'a'+devc, partc);
+			} else {
+				snprintf(buff, sizeof(buff), "%s%d\t/mnt/%s%d", device, partc, device+5, partc);
 			}
 
 			// set
@@ -328,7 +328,7 @@ int main(int argc, char *argv[])
 		if (!strcmp(argv[i], "-c")) flag|=1;		// fstabにないの
 		else if(!strcmp(argv[i], "-a")) flag|=2;	// すべて表示
 		else if(!strcmp(argv[i], "-v")) flag|=4;	// 詳細を表示
-		else if(!strcmp(argv[i], "-f")) flag|=8;
+		else if(!strcmp(argv[i], "-f")) flag|=8;	// /mnt/hd? 固定に
 		else if(!strcmp(argv[i], "-d")) flag|=16;	// ディレクトリ作成
 		//else return syntax(argv[i]);
 	}
@@ -336,7 +336,7 @@ int main(int argc, char *argv[])
 	if (flag&4) printf("Scanning for new harddiscs/partitions...\n");
 
 	// Check using devfs
-	if (stat("/dev/.devfsd", &statbuf) || flag&8) {
+	if (stat("/dev/.devfsd", &statbuf) || !(flag&8)) {
 	//if (1) {
 		// Use /proc/partitions to find discs
 		fp = fopen(PROC_PARTITIONS, "r");

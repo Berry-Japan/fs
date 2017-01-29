@@ -1,5 +1,5 @@
 %define name fs
-%define version 0.16
+%define version 0.17
 %define release b1
 
 Name:		%{name}
@@ -13,22 +13,12 @@ Buildroot:	%{_tmppath}/%{name}-%{version}
 
 BuildArchitectures: i586
 
-
 %description
 Automatic filesystem setup for Berry Linux.
 
 
-##
-## Setup Section
-##
-
 %prep
 %setup -q
-
-
-##
-## Build Section
-##
 
 %build
 [ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
@@ -36,40 +26,24 @@ mkdir -p $RPM_BUILD_ROOT
 
 make PREFIX=/opt/berry
 
-
-##
-## Install Section
-##
-
 %install
 mkdir -p %{buildroot}/opt/berry
 strip fs
 install -m 755 fs %{buildroot}/opt/berry
 
-
-##
-## Clean Section
-##
-
 %clean
 [ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
 rm -rf $RPM_BUILD_DIR/%{name}-%{version}
-
-
-##
-## Files Section
-##
 
 %files
 %defattr (-,root,root)
 /opt/berry/fs
 
 
-##
 ## change log
-##
-
 %changelog
+* Wed Nov 14 2007 Yuichiro Nakada <berry@po.yui.mine.nu>
+- Use /mnt/sd? default for SATA
 * Fri Apr 20 2007 Yuichiro Nakada <berry@po.yui.mine.nu>
 - Added ntfs-3g support
 * Fri Jul 14 2006 Yuichiro Nakada <berry@po.yui.mine.nu>
