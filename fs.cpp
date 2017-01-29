@@ -1,7 +1,7 @@
 //---------------------------------------------------------
 //	Filesystem Detection and Configuration
 //
-//		(C)2003-2004,2006 NAKADA
+//		(C)2003-2004,2006-2007 NAKADA
 //---------------------------------------------------------
 
 #include <stdio.h>
@@ -32,9 +32,11 @@ char part[120];		// partition name
 //	Define llseek (for Linux)
 //---------------------------------------------------------
 
+/*#ifdef _syscall5
 _syscall5(int, _llseek, unsigned int, fd,
           unsigned long, offset_high, unsigned long, offset_low,
           long long *, result, unsigned int, origin)
+#endif*/
 
 
 //---------------------------------------------------------
@@ -46,7 +48,12 @@ void seek_sector(int fd, uint sec)
 	long long r;
 	unsigned long long offset = (unsigned long long)sec * 512;
 
+/*#ifdef _syscall5
 	_llseek(fd, offset>>32, offset&0xffffffff, &r, SEEK_SET);
+#else
+	syscall(__NR__llseek, fd, offset>>32, offset&0xffffffff, &r, SEEK_SET);
+#endif*/
+	r = lseek64(fd, offset, SEEK_SET);
 	if (r==-1) {
 		printf("\nError seeking drive\n");
 		exit(1);
@@ -207,7 +214,8 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 
 			case NTFS:			// 0x07
 			case HIDDEN_NTFS:		// 0x17
-				printf("%s\tntfs\tusers,nls=utf8,uid=1000\t0 0\n", buff);
+				//printf("%s\tntfs\tusers,nls=utf8,uid=1000\t0 0\n", buff);
+				printf("%s\tntfs-3g\tusers,locale=ja_JP.UTF-8,umask=007\t0 1\n", buff);
 				break;
 
 			case Win98_FAT32:		// 0x0b
@@ -226,7 +234,7 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 				break;
 
 			case LINUX_NATIVE:		// 0x83 (ext3 or reiserfs)
-				printf("%s\tauto\tusers,noatime\t0 0\n", buff);
+				printf("%s\tauto\tusers,noatime,exec\t0 0\n", buff);
 			}
 			//printf("%x\n",pt.entry[x].id);
 		}

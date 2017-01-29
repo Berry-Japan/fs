@@ -1,5 +1,5 @@
 %define name fs
-%define version 0.15
+%define version 0.16
 %define release b1
 
 Name:		%{name}
@@ -70,6 +70,8 @@ rm -rf $RPM_BUILD_DIR/%{name}-%{version}
 ##
 
 %changelog
+* Fri Apr 20 2007 Yuichiro Nakada <berry@po.yui.mine.nu>
+- Added ntfs-3g support
 * Fri Jul 14 2006 Yuichiro Nakada <berry@po.yui.mine.nu>
 - Added -d option for mount dir
 * Wed Nov 17 2004 Yuichiro Nakada <berry@po.yui.mine.nu>
