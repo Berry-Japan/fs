@@ -37,8 +37,10 @@
 //---------------------------------------------------------
 
 typedef unsigned char byte;
+//typedef unsigned int uint32_t;
+#include <stdint.h>
 
-struct partition_table_entry {
+typedef struct _partition_table_entry {
 	byte boot_flag;			/* active partition ? */
 	byte start_sector_head;
 	byte start_sector;
@@ -47,21 +49,21 @@ struct partition_table_entry {
 	byte end_sector_head;
 	byte end_sector;
 	byte end_cylinder;
-	long lba_start;			/* starting sector counting from 0 */
-	long lba_size;			/* nr of sectors in partition */
-};
+	uint32_t lba_start;		/* starting sector counting from 0 */
+	uint32_t lba_size;		/* nr of sectors in partition */
+} partition_table_entry;
 
-struct partition_table {
+typedef struct _partition_table {
 	partition_table_entry entry[4];
 	byte signature[2];		/* Should be 55 AA for valid disk */
-};
+} partition_table;
 
-struct systypes {
+typedef struct _systypes {
 	byte type;
 	char *name;
-};
+} systypes;
 
-struct systypes i386_sys_types[] = {
+systypes i386_sys_types[] = {
 	{0x00, "Empty"},
 	{0x01, "FAT12"},
 	{0x02, "XENIX root"},

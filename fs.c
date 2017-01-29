@@ -11,8 +11,8 @@
 #include <glob.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+//#define _LARGEFILE64_SOURCE
 #include <unistd.h>
-#include <linux/unistd.h>
 #include <errno.h>
 #include <dirent.h>	// for DIR
 #include "fs.h"
@@ -249,8 +249,8 @@ void show_partition_table(char *device, partition_table pt, int flag, int ex)
 			printf("%s%d\t", part, ++partc);
 			//printf("%s%d\t", part, x+ex*4+1);
 			printf("  %-3s", pt.entry[x].boot_flag ? "Yes" : "No");
-			printf(" %10ld", pt.entry[x].lba_start);
-			printf(" %10ld", pt.entry[x].lba_size / 2);
+			printf(" %10d", pt.entry[x].lba_start);
+			printf(" %10d", pt.entry[x].lba_size / 2);
 			printf("  %s\n", get_system_type(pt.entry[x].id));
 		}
 		printf("\n");
