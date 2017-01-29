@@ -23,8 +23,9 @@
 
 int flag;		// option flag
 int devc;		// device count
-//char dev[120];		// device name
-//char part[120];		// partition name
+int partc;		// partition count
+char dev[120];		// device name
+char part[120];		// partition name
 
 
 //---------------------------------------------------------
@@ -185,38 +186,46 @@ int check_fstab(char *device)
 //	Displays Partition Table
 //---------------------------------------------------------
 
-void show_partition_table(char *device, partition_table pt, int flag)
+void show_partition_table(char *device, partition_table pt, int flag, int ex)
 {
 	int x;
 	char buff[256];
 
 	if (flag) {
-		for (x = 0; x < 4; x++) {
-			devc++;
+		// extened ?
+		if (ex) ex = 1;
+		else ex = 4;
 
-			snprintf(buff, sizeof(buff), "%s%d", device, devc);
+		for (x = 0; x < ex; x++) {
+			partc++;
+
+			// check fstab
+			snprintf(buff, sizeof(buff), "%s%d", device, partc);
 			if (!check_fstab(buff)) continue;
 
+			snprintf(buff, sizeof(buff), "%s%d\t/mnt/hd%c%d", device, partc, 'a'+devc, partc);
+
+			// set
 			switch (pt.entry[x].id) {
 			case NTFS:		// 0x07
-				printf("%s%d\t/mnt/hd%d\tntfs\tusers,ro\t0 0\n", device, devc, devc);
+				printf("%s\tntfs\tusers,ro\t0 0\n", buff);
 				break;
 
 			case Win98_FAT32:	// 0x0b
 			case Win98_FAT32_LBA:	// 0x0c
-				printf("%s%d\t/mnt/hd%d\tvfat\tusers,codepage=932,iocharset=euc-jp\t0 0\n", device, devc, devc);
+				printf("%s\tvfat\tusers,codepage=932,iocharset=euc-jp\t0 0\n", buff);
 				break;
 
 			case LINUX_PARTITION:	// 0x81
-				printf("%s%d\t/mnt/hd%d\text2\tusers\t0 0\n", device, devc, devc);
+				printf("%s\text2\tusers\t0 0\n", buff);
 				break;
 
 			case LINUX_SWAP:	// 0x82
-				printf("%s%d\tswap\tswap\tdefaults\t0 0\n", device, devc);
+				printf("%s%d\tswap\tswap\tdefaults\t0 0\n", device, partc);
 				break;
 
 			case LINUX_NATIVE:	// 0x83
-				printf("%s%d\t/mnt/hd%d\text3\tusers\t0 0\n", device, devc, devc);
+				printf("%s\text3\tusers\t0 0\n", buff);
 				break;
 			}
 			//printf("%x\n",pt.entry[x].id);
@@ -239,19 +248,19 @@ void show_partition_table(char *device, partition_table pt, int flag)
 //	Patition
 //---------------------------------------------------------
 
-void partition(char *device, char *name, uint sec, uint m, int flag)
+void partition(uint sec, uint m)
 {
 	int x;
 	partition_table pt;
 
 	// infomation
-	read_partition_table(device, sec, &pt);
-	show_partition_table(name, pt, flag);
+	read_partition_table(dev, sec, &pt);
+	show_partition_table(part, pt, flag, sec!=0);
 
 	// for extended partition
 	for (x=0; x<4; x++) {
 		if (IS_EXTENDED(pt.entry[x].id)) {
-			partition(device, name, pt.entry[x].lba_start + m, m==0 ? pt.entry[x].lba_start : m, flag);
+			partition(pt.entry[x].lba_start + m, m==0 ? pt.entry[x].lba_start : m);
 		}
 	}
 
@@ -294,7 +303,7 @@ int is_ide_cdrom_or_tape(char *device)
 int main(int argc, char *argv[])
 {
 	FILE *fp;
-	char line[100], name[100], device[120], *s;
+	char line[100], name[100], *s;
 	int ma, mi, sz;
 
 	int i;
@@ -315,27 +324,31 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 
+		devc=0;
 		while (fgets(line, sizeof(line), fp)) {
 			if (sscanf(line, " %d %d %d %[^\n ]", &ma, &mi, &sz, name) != 4) continue;
 			for (s = name; *s; s++) ;
 			if (isdigit(s[-1])) continue;
-			snprintf(device, sizeof(device), "/dev/%s", name);
+
+			partc=0;
+			snprintf(dev, sizeof(dev), "/dev/%s", name);
+			snprintf(part, sizeof(part), "/dev/%s", name);
 
 			if (!is_ide_cdrom_or_tape(name)) {
-				devc=0;
-				partition(device, device, 0, 0, flag);
+				partition(0, 0);
 			}
+			devc++;
 		}
 		fclose(fp);
 	} else {
 		// Use devfs
 		if (!glob("/dev/discs/disc?*", 0, NULL, &globres)) {
-			for (i=0; i<(int)globres.gl_pathc; i++) {
+			for (devc=0; devc<(int)globres.gl_pathc; devc++) {
 				//printf("%s\n", globres.gl_pathv[i]);
-				devc=0;
-				snprintf(device, sizeof(device), "%s/disc", globres.gl_pathv[i]);
-				snprintf(name, sizeof(name), "%s/part", globres.gl_pathv[i]);
-				partition(device, name, 0, 0, flag);
+				partc=0;
+				snprintf(dev, sizeof(dev), "%s/disc", globres.gl_pathv[devc]);
+				snprintf(part, sizeof(part), "%s/part", globres.gl_pathv[devc]);
+				partition(0, 0);
 			}
 		}
 		globfree(&globres);
