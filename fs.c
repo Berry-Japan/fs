@@ -75,8 +75,10 @@ int read_sector(char *device, uint sec, void *buff)
 
 	fd = open(device, O_RDONLY);
 	if (fd==-1) {
-		printf("\nError opening drive %s\n", device);
-		exit(1);
+//		printf("\nError opening drive %s\n", device);
+//		exit(1);
+//		fprintf(stderr, "\nError opening drive %s\n", device);
+		return -1;
 	}
 	seek_sector(fd, sec);
 	status = read(fd, buff, 512);
@@ -94,7 +96,7 @@ int read_partition_table(char *device, uint sec, partition_table *pt)
 	int status;
 	char buff[512];
 
-	status=read_sector(device, sec, buff);
+	status = read_sector(device, sec, buff);
 	memmove(pt, (buff + 0x1be), sizeof(partition_table));
 
 	return status;
@@ -270,7 +272,7 @@ void partition(uint sec, uint m)
 	partition_table pt;
 
 	// infomation
-	read_partition_table(dev, sec, &pt);
+	if (read_partition_table(dev, sec, &pt)<0) return;
 	show_partition_table(part, pt, flag, sec!=0);
 
 	// for extended partition

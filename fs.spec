@@ -1,5 +1,5 @@
 %define name fs
-%define version 0.19
+%define version 0.20
 %define release b1
 
 Name:		%{name}
